@@ -1,13 +1,16 @@
 import os
 import datetime
 
-#добавить на старте программы создание пустого файла, если его еще нет -- так можно будет писать с ИД сразу
+#добавить на старте программы создание пустого файла, если его еще нет --
+# #так можно будет писать с ИД сразу
+
+
 
 def write_to_file(path1):
     n = 0
-    # with open('notes.csv', "r") as file1:
-    #     lst_1 = file1.readlines()
-    #     n = len(lst_1)
+    with open('notes.csv', "r") as file1:
+        lst_1 = file1.readlines()
+        n = len(lst_1)
     tmp_line = str(n) + ";" + input("Введите заголовок заметки: ") + ";"
     tmp_line += input("Введите текст заметки: ") + ";"
     tmp_line += str(datetime.datetime.now())
@@ -54,4 +57,15 @@ def get_user_intention():
             print(result)
 
 
-get_user_intention()
+def start_program():
+    if not os.path.exists('notes.csv'):
+        with open('notes.csv', "a") as file1:
+            file1.write("0;Заголовок;Текст заметки;Дата последнего изменения" + "\n")
+    get_user_intention()
+
+
+start_program()
+
+
+
+
