@@ -1,13 +1,14 @@
 import os
 import datetime
 
-#добавить на старте программы создание пустого файла, если его еще нет --
-# #так можно будет писать с ИД сразу
-
+#парсить файл для поиска по ИД, заголовку, тексту и дате
+#дату выбирать из списка?
 
 
 def write_to_file(path1):
-    n = 0
+    # запись заметок в файл: ID (порядковый номер) и дата присваиваются автоматически,
+    # заголовок и текст запрашиваются у пользователя (поочередно)
+    n = 0 # будущий ID заметки
     with open('notes.csv', "r") as file1:
         lst_1 = file1.readlines()
         n = len(lst_1)
@@ -18,18 +19,43 @@ def write_to_file(path1):
         file1.write(tmp_line + "\n")
 
 
-def search_file(path1, search_input):
+def parse_file(path1):
+    # считываем файл в массив (список списков) для удобства поиска и редактирования
     with open('notes.csv', "r") as file1:
         lst_1 = file1.readlines()
-        flag1 = False
-        result = "\n"
-        for line in lst_1:
-            if search_input in line:
-                result = result + line
-                flag1 = True
-        if not flag1:
-            result = "Извините, такой записи нет\n"
+        lst_2 = []
+        for i in range(1, len(lst_1)):
+            lst_2.append(lst_1[i].split(";"))
+    return lst_2
+
+
+def lookup_by_field(lst_parsed_file, field_num, search_input):
+    flag1 = False
+    result = []
+    for i in range(0, len(lst_parsed_file)):
+        if search_input in lst_parsed_file[i][field_num]:
+            result.append(lst_parsed_file[i])
+            flag1 = True
+    if not flag1:
+        result.append(["Извините, такой записи нет"])
     return result
+
+
+def search_file(path1):
+    lst_parsed_notes = parse_file(path1)
+    txt_zapros = "Введите номер команды, которую хотите выполнить.\n" \
+                 "1. Искать по ID\n" \
+                 "2. Искать по заголовкам\n" \
+                 "3. Искать по текстам записок\n" \
+                 "4. Искать по дате в формате ГГГГ-ММ-ДД\n"\
+                 "5. Вернуться в главное меню\n"
+    a = int(input(txt_zapros))
+    if a in [1, 2, 3, 4]:
+        search_input = input("Что ищем? ")
+        result = lookup_by_field(lst_parsed_notes, a-1, search_input)
+        return result
+    else:
+        get_user_intention()
 
 
 def show_all(path1):
@@ -49,8 +75,10 @@ def get_user_intention():
         if a == '1':
             write_to_file(os.getcwd())
         elif a == '2':
-            to_search = input("Что ищем? ")
-            result = search_file(os.getcwd(), to_search)
+            lst_1 = search_file(os.getcwd())
+            result = ''
+            for item in lst_1:
+                result += '\n' + '\n'.join(item)
             print(result)
         elif a == '3':
             result = show_all(os.getcwd())
