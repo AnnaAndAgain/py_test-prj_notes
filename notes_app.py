@@ -1,8 +1,8 @@
 import os
 import datetime
 
-#парсить файл для поиска по ИД, заголовку, тексту и дате
-#дату выбирать из списка?
+# редактировать записку
+# удалять записку
 
 
 def write_to_file(path1):
@@ -20,7 +20,7 @@ def write_to_file(path1):
 
 
 def parse_file(path1):
-    # считываем файл в массив (список списков) для удобства поиска и редактирования
+    # считываем файл в массив (список списков) для удобства поиска и редактирования, без заголовков столбцов!
     with open('notes.csv', "r") as file1:
         lst_1 = file1.readlines()
         lst_2 = []
@@ -30,6 +30,7 @@ def parse_file(path1):
 
 
 def lookup_by_field(lst_parsed_file, field_num, search_input):
+    # находим все заметки, содержащие указанные символы, возвращаем список заметок
     flag1 = False
     result = []
     for i in range(0, len(lst_parsed_file)):
@@ -41,7 +42,7 @@ def lookup_by_field(lst_parsed_file, field_num, search_input):
     return result
 
 
-def search_file(path1):
+def search_file(path1, txt1):
     lst_parsed_notes = parse_file(path1)
     txt_zapros = "Введите номер команды, которую хотите выполнить.\n" \
                  "1. Искать по ID\n" \
@@ -51,7 +52,7 @@ def search_file(path1):
                  "5. Вернуться в главное меню\n"
     a = int(input(txt_zapros))
     if a in [1, 2, 3, 4]:
-        search_input = input("Что ищем? ")
+        search_input = input(txt1)
         result = lookup_by_field(lst_parsed_notes, a-1, search_input)
         return result
     else:
@@ -63,19 +64,60 @@ def show_all(path1):
         return file1.read()
 
 
+def update_note_in_file(path1, lst2):
+    str_to_write = "0;Заголовок;Текст заметки;Дата последнего изменения\n"
+    for item in lst2:
+        str_to_write += ';'.join(item)
+    with open('notes.csv', "w") as file1:
+        file1.write(str_to_write + "\n")
+
+
+def edit_note(path1):
+    lst_found = search_file(path1, "Что ищем, чтобы отредактировать? ") #список найденных строк
+    txt_zapros = "Введите номер строки, которую хотите изменить.\n"
+
+    if lst_found == ["Извините, такой записи нет"]:
+        print("Извините, такой записи нет")
+        return
+    else:
+        for i in range(1, len(lst_found)+1):
+            txt_zapros += str(i) + ". " + str(lst_found[i-1]) + "\n"
+        txt_zapros += str(len(lst_found)+1) + ". " + "Отредактировать другую строку\n"
+        txt_zapros += str(len(lst_found)+2) + ". " + "Выйти в главное меню\n"
+    a = int(input(txt_zapros)) # номер нужной строки (на 1 больше, чем индекс в списке найденных)
+    if a in range(1, len(lst_found)+1):
+        lst2 = parse_file(path1) # список из строк файла (записок), разбитых на поля
+        idx_to_edit = lst2.index(lst_found[a-1])
+        lst2[idx_to_edit][1] = input("Введите новый заголовок заметки: ")
+        lst2[idx_to_edit][2] = input("Введите новый текст заметки: ")
+        lst2[idx_to_edit][3] = str(datetime.datetime.now()) + "\n"
+        update_note_in_file(path1, lst2)
+        print("Записка № " + str(idx_to_edit) + " успешно изменена.")
+        return
+    elif a == (len(lst_found)+1):
+        edit_note(path1)
+    else:
+        return
+
+def delete_note(path1):
+    pass
+
+
 def get_user_intention():
     txt_zapros = "Введите номер команды, которую хотите выполнить.\n" \
                  "1. Записать новые данные в файл\n" \
                  "2. Найти конкретную запись в файле\n" \
                  "3. Вывести весь файл\n" \
-                 "4. Выйти из программы.\n"
+                 "4. Редактировать заметку\n" \
+                 "5. Удалить заметку\n" \
+                 "6. Выйти из программы.\n"
     a = None
-    while a != '4':
+    while a != '6':
         a = input(txt_zapros)
         if a == '1':
             write_to_file(os.getcwd())
         elif a == '2':
-            lst_1 = search_file(os.getcwd())
+            lst_1 = search_file(os.getcwd(), "Что ищем? ")
             result = ''
             for item in lst_1:
                 result += '\n' + '\n'.join(item)
@@ -83,6 +125,12 @@ def get_user_intention():
         elif a == '3':
             result = show_all(os.getcwd())
             print(result)
+        elif a == '4':
+            edit_note(os.getcwd())
+        elif a == '5':
+            delete_note(os.getcwd())
+    quit()
+
 
 
 def start_program():
